@@ -1,13 +1,6 @@
 const { validationResult, matchedData } = require("express-validator");
 const Product = require("../models/Product");
 const multer = require("multer");
-const fs = require("fs");
-const cloudinary = require("cloudinary").v2;
-cloudinary.config({
-  cloud_name: "dlxuuaf84",
-  api_key: "231743669913135",
-  api_secret: "jRzfY3rxoINJITB211OsEfGUT_o",
-});
 
 const storage = multer.diskStorage({});
 const upload = multer({ storage });
@@ -129,8 +122,6 @@ RepositionProduct = async (req, res) => {
   }
 };
 
-
-
 UpdateProductImage = async (req, res) => {
   const errors = validationResult(req); // Checking for validations
   const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress; // Get client's IP address
@@ -156,30 +147,28 @@ UpdateProductImage = async (req, res) => {
     });
 };
 
-UpdateProduct = async(req,res) => {
+UpdateProduct = async (req, res) => {
   const errors = validationResult(req); // Checking for validations
   const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress; // Get client's IP address
 
-  const data = matchedData(req)
-const id  = req.params.id
-  console.log("data",data);
+  const data = matchedData(req);
+  const id = req.params.id;
+  console.log("data", data);
 
   try {
     const product = await Product.findByIdAndUpdate(
-      {_id:id},
+      { _id: id },
       {
-        product_name:data.product_name, 
+        product_name: data.product_name,
         details: data.details,
         available: data.available,
       }
-      )
-      return res.status(201).json({ result: product });
-
+    );
+    return res.status(201).json({ result: product });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
-
-}
+};
 
 module.exports = {
   testProductAPI,
