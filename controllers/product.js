@@ -5,6 +5,13 @@ const multer = require("multer");
 const storage = multer.diskStorage({});
 const upload = multer({ storage });
 
+const cloudinary = require("cloudinary").v2;
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.API_KEY,
+  api_secret: process.env.API_SECRET,
+});
+
 // Controller function to test Products API
 const testProductAPI = (req, res) => {
   res.send("Test Products API");

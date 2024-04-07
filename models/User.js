@@ -7,9 +7,15 @@ const { Schema } = mongoose;
 const UserSchema = new Schema({
   google_id: {
     type: String,
+    default: "",
   },
   profile: {
     type: String,
+    default: "",
+  },
+  public_id: {
+    type: String,
+    default: "",
   },
   name: {
     type: String,

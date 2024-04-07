@@ -38,7 +38,7 @@ router.post(
 //@desc Create User API
 //@route POST user/updateuser/:id
 //@access Public
-router.post("/updateuser/:id", [body("name"), body("mobile_no"), body("role_type")], UpdateUser);
+router.post("/updateuser/:id", [body("name"), body("mobile_no"), body("role_type"), body("profile"), body("public_id")], UpdateUser);
 
 //@desc Get User Info API
 //@route post user/get/:id

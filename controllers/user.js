@@ -5,6 +5,13 @@ const secret = "test";
 const logger = require("../config/logger.js");
 const jwt = require("jsonwebtoken");
 
+const cloudinary = require("cloudinary").v2;
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.API_KEY,
+  api_secret: process.env.API_SECRET,
+});
+
 const TestUserAPI = async (req, res) => {
   return res.status(200).send("User API test successfull");
 };
@@ -45,7 +52,6 @@ const CreateUser = async (req, res) => {
   const securedPass = await bcrypt.hash(data.password, salt);
 
   await User.create({
-    profile: "",
     name: data.name,
     email: data.email,
     mobile_no: data.mobile_no,
@@ -130,6 +136,7 @@ const UpdateUser = async (req, res) => {
     logger.error(`${ip}: API user/updateuser/:id  user not found `);
     return res.status(400).json({ message: "user not found" });
   }
+  //console.log("update Data", data);
 
   try {
     const user = await User.findOneAndUpdate(
@@ -137,6 +144,9 @@ const UpdateUser = async (req, res) => {
       {
         name: data.name,
         mobile_no: data.mobile_no,
+        profile: data.profile,
+        public_id: data.public_id,
+        role: data.role_type || "65edcbe4cf457490bd02a28d",
       },
       {
         new: true,
