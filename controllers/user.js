@@ -56,7 +56,7 @@ const CreateUser = async (req, res) => {
     email: data.email,
     mobile_no: data.mobile_no,
     password: securedPass,
-    role_type: data.role_type || "65edcbe4cf457490bd02a28d",
+    role_type: data.role_type || "6611302fe47d0a74ee4ae431",
   })
     .then((user) => {
       logger.info(`${ip}: API /api/v1/user/add  responnded with Success `);
