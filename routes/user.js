@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { body } = require("express-validator");
 const validateToken = require("../middleWare/validateToken.js");
-const { ChangeUserRole, CreateUser, GetCurrentUser, GetUserById, LogInUser, TestUserAPI, UpdateUser } = require("../controllers/user");
+const { ChangeUserRole, CreateUser, GetAllUsers, GetCurrentUser, GetUserById, LogInUser, TestUserAPI, UpdateUser } = require("../controllers/user");
 
 //@desc Create User API
 //@route POST user/signup
@@ -54,6 +54,11 @@ router.put("/change-role/:id", [body("role_type", "Enter Valid Role_Type").isEma
 //@route GET /api/v1/user
 //@access Public
 router.get("/", TestUserAPI);
+
+//@desc Test User API
+//@route GET /getalluser
+//@access Public
+router.get("/getallusers", GetAllUsers);
 
 //@desc Get Current User API
 //@route GET /user

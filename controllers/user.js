@@ -226,6 +226,25 @@ const GetCurrentUser = async (req, res) => {
   }
 };
 
+const GetAllUsers = async (req, res) => {
+  const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress; // Get client IP address
+
+  try {
+    // Fetch all users from the database
+    const users = await User.find().populate({ path: "role_type" });
+
+    logger.info(`${ip}: API /api/v1/user/getallusers | Responded with "Successfully retrieved all users"`);
+
+    // Return the list of users as a response
+    return res.status(200).json({ data: users, message: "All users retrieved successfully" });
+  } catch (error) {
+    logger.error(`${ip}: API /api/v1/user/getallusers | Responded with Error: ${error.message}`);
+
+    // Return an error response if something goes wrong
+    return res.status(500).json({ message: "Internal server error", error: error.message });
+  }
+};
+
 module.exports = {
   ChangeUserRole,
   CreateUser,
@@ -234,4 +253,5 @@ module.exports = {
   LogInUser,
   TestUserAPI,
   UpdateUser,
+  GetAllUsers,
 };
