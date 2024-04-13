@@ -2,7 +2,7 @@ const jwt = require("jsonwebtoken");
 const logger = require("../config/logger.js");
 const secrete = "test";
 
-const validateToken = async (req, res, next) => {
+const manageProductAuth = async (req, res, next) => {
   const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
   try {
     let token;
@@ -22,7 +22,6 @@ const validateToken = async (req, res, next) => {
         }
 
         req.user = decoded.user;
-        //console.log("req user", req.user);
         next();
       });
 
@@ -35,4 +34,6 @@ const validateToken = async (req, res, next) => {
   }
 };
 
-module.exports = validateToken;
+module.exports = {
+  manageProductAuth,
+};

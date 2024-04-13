@@ -2,6 +2,9 @@ const express = require("express");
 const dotenv = require("dotenv").config();
 const cors = require("cors");
 const connectToMongo = require("./config/db.js");
+const validateToken = require("./middleWare/validateToken.js");
+const User = require("./models/User");
+const Role_type = require("./models/Role_Type");
 
 const multer = require("multer");
 const fs = require("fs");
@@ -26,7 +29,35 @@ app.get("/", (req, res) => {
 
 const upload2 = multer({ dest: "uploads/" }); // Destination folder for multer to store temporary files
 
-app.post("/product/uploadimage", upload2.single("image"), (req, res) => {
+app.post("/product/uploadimage", upload2.single("image"), validateToken, async (req, res) => {
+  const role = await Role_type.findById({ _id: req.user.role_type }).catch((err) => {
+    console.log(err);
+    return res.status(500).json({ error: err, message: "something went wrong" });
+  });
+  console.log("Role ", role);
+
+  if (role.value != "user") {
+    const image = req.file.path; // Path to the uploaded file
+    //console.log("Uploaded image path:", image);
+
+    cloudinary.uploader.upload(image, (error, result) => {
+      // Delete the temporary file uploaded by multer
+      fs.unlinkSync(image);
+
+      if (error) {
+        console.error(error);
+        return res.status(500).json({ error: error.message, message: "Something went wrong while uploading image" });
+      } else {
+        console.log(result);
+        return res.status(201).json({ result });
+      }
+    });
+  } else {
+    return res.status(405).json({ message: "You not authorized to to update image" });
+  }
+});
+
+app.post("/user/uploadimage", upload2.single("image"), (req, res) => {
   const image = req.file.path; // Path to the uploaded file
   console.log("Uploaded image path:", image);
 

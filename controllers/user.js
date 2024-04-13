@@ -1,5 +1,6 @@
 const { validationResult, matchedData } = require("express-validator");
 const User = require("../models/User");
+const Role_type = require("../models/Role_Type");
 const bcrypt = require("bcryptjs");
 const secret = "test";
 const logger = require("../config/logger.js");
@@ -116,6 +117,21 @@ const LogInUser = async (req, res) => {
   }
 };
 
+//@desc Delete Product API
+//@route POST user/deleteuserimage/:id
+//@access Public
+const DeleteUserImage = async (req, res) => {
+  try {
+    const publicId = req.params.id;
+    const result = await cloudinary.uploader.destroy(publicId);
+    console.log(result);
+
+    res.status(201).json({ message: "Product deleted" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 //@desc Create User API
 //@route POST user/updateuser/:id
 //@access Public
@@ -161,6 +177,49 @@ const UpdateUser = async (req, res) => {
   }
 };
 
+//@desc Create User API
+//@route POST user/updaterole_type/:id
+//@access Public
+const UpdateRoleType = async (req, res) => {
+  const errors = validationResult(req); //checking for validations
+  const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress; //wats remote address?
+
+  //if error return
+  if (!errors.isEmpty()) {
+    logger.error(`${ip}: API user/updateuser/:id  responnded with Error `);
+    return res.status(400).json({ errors: errors.array() });
+  }
+  const data = matchedData(req);
+
+  const oldUser = await User.findOne({ _id: req.params.id });
+
+  if (!oldUser) {
+    logger.error(`${ip}: API user/updateuser/:id  user not found `);
+    return res.status(400).json({ message: "user not found" });
+  }
+  console.log("user fond");
+
+  console.log("data : ", data, req.params.id);
+
+  try {
+    const user = await User.findByIdAndUpdate(
+      { _id: req.params.id },
+      {
+        role_type: data.role_type,
+      },
+      {
+        new: true,
+      }
+    );
+
+    logger.info(`${ip}: API user/updateuser/:id  responnded with Success `);
+    return res.status(201).json({ result: user });
+  } catch (err) {
+    logger.error(`${ip}: API user/updateuser/:id  responnded with Error `);
+    return res.status(500).json({ message: err.message });
+  }
+};
+
 //@desc Get User by ID API
 //@route GET /api/v1/user/get/:id
 //@access Public
@@ -184,28 +243,6 @@ const GetUserById = async (req, res) => {
   }
 };
 
-//@desc Change Role_Type API
-//@route post user/change-role/:id
-//@access Public
-const ChangeUserRole = async (req, res) => {
-  const userId = req.params.id;
-  const newRoleType = req.body.role_type;
-
-  try {
-    // Find the user by ID and update the role type
-    const user = await User.findByIdAndUpdate(userId, { role_type: newRoleType }, { new: true });
-
-    if (!user) {
-      logger.info(`${ip}: API user/change-role/:id | responnded with "User not found" `);
-      return res.status(404).json({ message: "User not found" });
-    }
-    logger.info(`${ip}: API user/change-role/:id | responnded with "User role type updated successfully" `);
-    return res.status(200).json({ message: "User role type updated successfully", user });
-  } catch (error) {
-    return res.status(500).json({ message: "Internal server error", error: error.message });
-  }
-};
-
 //@desc Get Current User API
 //@route GET /user/getcurrentuser
 //@access Public
@@ -217,6 +254,8 @@ const GetCurrentUser = async (req, res) => {
       logger.error(`${ip}: API /api/v1/user/getcurrentuser  responnded with Error , "Unautherized user " `);
       return res.status(500).json({ message: "Unauthorized user" });
     }
+
+    //console.log("current user", req.user);
 
     logger.info(`${ip}: API /api/v1/getcurrentuser | responnded with "Successfully retreived current user" `);
     return res.status(200).json({ data: req.user, message: "User Retrived" });
@@ -230,6 +269,15 @@ const GetAllUsers = async (req, res) => {
   const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress; // Get client IP address
 
   try {
+    console.log(req.user);
+    if (!req.user) {
+      return res.status(405).json({ message: "You are not authorized to manage users" });
+    }
+    const role = await Role_type.findById({ _id: req.user.role_type });
+    console.log("role inproduct ", role);
+    if (role.value == "user" || role.value == "admin" || !role) {
+      return res.status(405).json({ message: "You are not authorized to manage users" });
+    }
     // Fetch all users from the database
     const users = await User.find().populate({ path: "role_type" });
 
@@ -245,13 +293,43 @@ const GetAllUsers = async (req, res) => {
   }
 };
 
+//@desc Create User API
+//@route POST user/reset-password
+//@access Public
+const ResetPassword = async (req, res) => {
+  const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress; //wats remote address?
+
+  const data = matchedData(req);
+  console.log("data : ", data);
+
+  try {
+    const email = await User.findOne({ email: data.email });
+
+    if (!email) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const user = await User.findOneAndUpdate({ email: data.email }, { password: data.password });
+
+    logger.info(`${ip}: API /api/v1/user/user/reset-password responnded with "Got user by ID succesfully" `);
+    return res.status(201).json(user);
+  } catch {
+    logger.error(`${ip}: API /api/v1/user/user/reset-password responnded with user not found `);
+    return res.status(500).json({ e: "User not found" });
+  }
+};
+
 module.exports = {
-  ChangeUserRole,
+  ResetPassword,
+  UpdateRoleType,
+  DeleteUserImage,
   CreateUser,
   GetCurrentUser,
+
   GetUserById,
   LogInUser,
   TestUserAPI,
   UpdateUser,
   GetAllUsers,
+  ResetPassword,
 };

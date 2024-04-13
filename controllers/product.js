@@ -1,6 +1,7 @@
 const { validationResult, matchedData } = require("express-validator");
 const Product = require("../models/Product");
 const multer = require("multer");
+const Role_type = require("../models/Role_Type");
 
 const storage = multer.diskStorage({});
 const upload = multer({ storage });
@@ -95,6 +96,14 @@ const AddProduct = async (req, res) => {
 //@access Public
 const DeleteProduct = async (req, res) => {
   try {
+    if (!req.user) {
+      return res.status(405).json({ message: "You are not authorized to delete product" });
+    }
+    const role = await Role_type.findById({ _id: req.user.role_type });
+    console.log("role inproduct ", role);
+    if (role.value == "user") {
+      return res.status(405).json({ message: "You not authorized to delete product" });
+    }
     const publicId = req.params.id;
     const result = await cloudinary.uploader.destroy(publicId);
     console.log(result);
@@ -110,6 +119,12 @@ const DeleteProduct = async (req, res) => {
 //@access Public
 const DeleteProductImage = async (req, res) => {
   try {
+    const role = await Role_type.findById({ _id: req.user.role_type });
+    console.log("role inproduct ", role);
+    if (role.value == "user") {
+      return res.status(405).json({ message: "You not authorized to update product" });
+    }
+    console.log("deleting image");
     const publicId = req.params.id;
     const result = await cloudinary.uploader.destroy(publicId);
     console.log(result);
@@ -163,6 +178,14 @@ UpdateProduct = async (req, res) => {
   console.log("data", data);
 
   try {
+    if (!req.user) {
+      return res.status(405).json({ message: "You are not authorized to update product" });
+    }
+    const role = await Role_type.findById({ _id: req.user.role_type });
+    console.log("role inproduct ", role);
+    if (role.value == "user") {
+      return res.status(405).json({ message: "You not authorized to update product" });
+    }
     const product = await Product.findByIdAndUpdate(
       { _id: id },
       {

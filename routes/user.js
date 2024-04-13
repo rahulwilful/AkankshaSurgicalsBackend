@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { body } = require("express-validator");
 const validateToken = require("../middleWare/validateToken.js");
-const { ChangeUserRole, CreateUser, GetAllUsers, GetCurrentUser, GetUserById, LogInUser, TestUserAPI, UpdateUser } = require("../controllers/user");
+const { CreateUser, DeleteUserImage, GetAllUsers, GetCurrentUser, GetUserById, LogInUser, ResetPassword, TestUserAPI, UpdateRoleType, UpdateUser } = require("../controllers/user");
 
 //@desc Create User API
 //@route POST user/signup
@@ -36,19 +36,29 @@ router.post(
 );
 
 //@desc Create User API
+//@route POST user/updaterole_type/:id
+//@access Public
+router.post("/updaterole_type/:id", [body("role_type")], UpdateRoleType);
+
+//@desc Create User API
 //@route POST user/updateuser/:id
 //@access Public
 router.post("/updateuser/:id", [body("name"), body("mobile_no"), body("role_type"), body("profile"), body("public_id")], UpdateUser);
+
+//@desc Create User API
+//@route POST user/reset-password
+//@access Public
+router.post("/reset-password", [body("password"), body("email")], ResetPassword);
+
+//@desc Delete Product API
+//@route POST products/deleteproductimage/:id
+//@access Public
+router.post("/deleteuserimage/:id", DeleteUserImage);
 
 //@desc Get User Info API
 //@route post user/get/:id
 //@access Public
 router.get("/get/:id", GetUserById);
-
-//@desc Change Role_Type API
-//@route post user/change-role/:id
-//@access Public
-router.put("/change-role/:id", [body("role_type", "Enter Valid Role_Type").isEmail()], ChangeUserRole);
 
 //@desc Test User API
 //@route GET /api/v1/user
@@ -58,7 +68,7 @@ router.get("/", TestUserAPI);
 //@desc Test User API
 //@route GET /getalluser
 //@access Public
-router.get("/getallusers", GetAllUsers);
+router.get("/getallusers", validateToken, GetAllUsers);
 
 //@desc Get Current User API
 //@route GET /user
